@@ -1,20 +1,24 @@
 import io
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import to_rgba
+from matplotlib.patches import Polygon as MplPolygon
 
-def graficoProducaoDiariaPorCaminhao(df: pd.DataFrame) -> io.BytesIO:
+def graficoLinhaProducaoDiaria(dfViagens: pd.DataFrame) -> io.BytesIO:
+    print('Gerando gráfico com gradiente Spectral invertido')
+
     coluna_data = "time"
     coluna_valor = "volume_descarregado"
-    coluna_grupo = "prefixo_veiculo"
-
-    df_tmp = df.copy()
-    df_tmp[coluna_data] = pd.to_datetime(df_tmp[coluna_data], errors="coerce")
-    df_tmp[coluna_valor] = pd.to_numeric(df_tmp[coluna_valor], errors="coerce").fillna(0)
-    df_tmp = df_tmp.dropna(subset=[coluna_data])
-
-    # se ficou vazio, devolve imagem “sem dados”
+    df = dfViagens.copy()
+    
+    # limpeza de dados
+    df[coluna_data] = pd.to_datetime(df[coluna_data], errors="coerce")
+    df[coluna_valor] = pd.to_numeric(df[coluna_valor], errors="coerce").fillna(0)
+    df = df.dropna(subset=[coluna_data])
+    
     fig, ax = plt.subplots(figsize=(20, 11))
-    if df_tmp.empty:
+    if df.empty:
         ax.text(0.5, 0.5, "Sem dados no período", ha="center", va="center", fontsize=16)
         ax.axis("off")
         buf = io.BytesIO()
@@ -23,77 +27,90 @@ def graficoProducaoDiariaPorCaminhao(df: pd.DataFrame) -> io.BytesIO:
         plt.close(fig)
         buf.seek(0)
         return buf
-
-    # agrega por dia + caminhão
-    grup = (
-        df_tmp
-        .assign(__date=df_tmp[coluna_data].dt.date)
-        .groupby(["__date", coluna_grupo], as_index=False)[coluna_valor].sum()
-        .rename(columns={"__date": coluna_data})
-    )
-
-    piv = (
-        grup
-        .assign(**{coluna_data: pd.to_datetime(grup[coluna_data])})
-        .pivot_table(index=coluna_data, columns=coluna_grupo, values=coluna_valor, fill_value=0)
-        .sort_index()
-    )
-
-    labels = piv.index.strftime("%d/%m (%a)")
-
-    # período formatado
-    ini = df_tmp[coluna_data].min().strftime("%d/%m/%Y")
-    fim = df_tmp[coluna_data].max().strftime("%d/%m/%Y")
-
-    # redesenha o gráfico (reaproveita fig/ax já criado)
-    ax.clear()
     
-    cores1 = ["#003f5c", "#2f4b7c", "#665191", "#a05195", "#d45087", "#f95d6a", "#ff7c43", "#ffa600"]
-    cores2 = ["#003f5b", "#002477", "#3d038e", "#8007a1", "#b70b8a", "#cf0f54", "#e7480e", "#ff9913"]
-    cores3 = ["#003f5b", "#01616f", "#02847b", "#059c6b", "#4fb409", "#c3cc0c", "#e6b40f", "#ff9913"]
+    # agrupa por dia e soma o volume
+    df_diario = (
+        df.groupby(df[coluna_data].dt.date)[coluna_valor]
+        .sum()
+        .reset_index()
+        .sort_values(coluna_data)
+    )
+    
+    # período formatado
+    ini = df_diario[coluna_data].min().strftime("%d/%m/%Y")
+    fim = df_diario[coluna_data].max().strftime("%d/%m/%Y")
+    
+    # dados
+    x = np.arange(len(df_diario))
+    y = df_diario[coluna_valor].to_numpy()
 
-    if piv.empty:
-        ax.text(0.5, 0.5, "Sem dados no período", ha="center", va="center", fontsize=16)
-        ax.axis("off")
-    else:
-        bottom = None
-        for i, col in enumerate(piv.columns):
-            valores = piv[col].values
-            cor = cores1[i % len(cores1)]
-            ax.bar(labels, valores, bottom=bottom, label=str(col), color=cor)
-            bottom = valores if bottom is None else (bottom + valores)
+    ymin, ymax = 0, max(y) * 1.05
+    xmin, xmax = -0.5, len(x) - 0.5
 
-        # totais por dia (rótulo no topo da pilha)
-        totais = piv.sum(axis=1).values
-        for i, total in enumerate(totais):
-            ax.text(i, total, f"{total:.0f}t", ha="center", va="bottom", fontsize=12, fontweight="light")
+    # usa colormap invertido (Spectral_r)
+    cmap = plt.get_cmap("Blues_r")
 
-        # títulos/eixos
-        ax.set_title(f"Produção por dia (empilhado por caminhão): de {ini} a {fim}", fontsize=20)
-        ax.set_xlabel("Data", fontsize=14)
-        ax.set_ylabel("Volume descarregado (t)", fontsize=14)
+    # cria gradiente invertido (de cima para baixo)
+    gradient = np.linspace(1, 0, 256).reshape(-1, 1)
+    img = ax.imshow(
+        gradient,
+        extent=[xmin, xmax, ymin, ymax],
+        origin='lower',
+        aspect='auto',
+        cmap=cmap,
+        alpha=1.0,
+        zorder=1
+    )
 
-        # legenda adaptativa (  máx. 6 colunas)
-        ncols = max(1, min(len(piv.columns), 6))
-        ax.legend(
-            title="Caminhão",
-            fontsize=12,
-            title_fontsize=13,
-            ncol=ncols,
-            frameon=False,
-            loc="upper center",
-            bbox_to_anchor=(0.5, -0.12)
+    # cria o polígono da área sob a curva
+    verts = np.vstack([
+        np.column_stack([x, y]),
+        [x[-1], ymin],
+        [x[0], ymin]
+    ])
+    poly = MplPolygon(verts, closed=True, transform=ax.transData)
+
+    # aplica o recorte (clip)
+    img.set_clip_path(poly)
+
+    # camada de contraste suave
+    ax.fill_between(x, y, color=to_rgba("#000000", 0.08), zorder=2)
+
+    # linha e pontos sobre o gradiente
+    ax.plot(
+        x, y,
+        '-o',
+        color="#333333",
+        linewidth=2,
+        markersize=8,
+        markerfacecolor="#ffffff",
+        markeredgecolor="#333333",
+        zorder=3
+    )
+
+    # adiciona valores sobre os pontos
+    for xi, yi in zip(x, y):
+        ax.text(
+            xi, yi + (yi * 0.025),
+            f"{yi:,.0f}",
+            ha="center", va="bottom",
+            fontsize=10, color="#222", weight="bold", zorder=4
         )
 
-        ax.grid(True, axis="y", linestyle="--", alpha=0.7)
-        plt.xticks(rotation=45, ha="right")
+    # títulos e eixos
+    ax.set_title(f"Produção diária: de {ini} a {fim}", fontsize=20, pad=20)
+    ax.set_xlabel("Data", fontsize=14)
+    ax.set_ylabel("Volume descarregado (t)", fontsize=14)
 
-        # dá um respiro pra legenda e rótulos
-        fig.subplots_adjust(bottom=0.25, top=0.88)
+    # formata eixo X
+    ax.set_xticks(x)
+    ax.set_xticklabels(df_diario[coluna_data].astype(str), rotation=45, ha="right")
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
 
-    buf = io.BytesIO()
     plt.tight_layout()
-    plt.savefig(buf, format="PNG")
+    buf = io.BytesIO()
+    plt.savefig(buf, format="PNG", dpi=120)
     plt.close(fig)
     buf.seek(0)
     return buf

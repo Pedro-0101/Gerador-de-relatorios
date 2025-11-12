@@ -1,7 +1,7 @@
 import argparse
 from datetime import datetime, timedelta
 from typing import Optional
-from ERPGerencialOssj.db import load_dataframe
+from db import load_dataframe
 
 from .criarPdfRelatorio import criarPdf
 

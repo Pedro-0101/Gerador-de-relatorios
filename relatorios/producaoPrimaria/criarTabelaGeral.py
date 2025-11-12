@@ -8,7 +8,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Table, TableStyle, Paragraph, Spacer, PageBreak, Indenter
 
-from ERPGerencialOssj.temas.tema_amarelo_dnp import (
+from temas.tema_amarelo_dnp import (
     COR_FUNDO, COR_GRID, COR_FUNDO_SECUNDARIA
 )
 

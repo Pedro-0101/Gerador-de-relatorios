@@ -1,0 +1,23 @@
+Producao geral
+  criar grafico de linha producao diaria simples - x
+  tabela com total de viagens e volume por diaria
+  tabela com producao total mes a mes
+
+Caminhoes
+  Grafico barra com producao total
+  Tabela com com colunas: Caminhão | Nº de Viagens | Total Descarregado (t) | Peso Médio | Última Viagem
+
+Motoristas
+  Grafico de barra com producao total
+  Tabela com colunas Motorista | Nº Viagens | Total Descarregado | Média por Viagem | Caminhão habitual | Media de viagens por diaria
+
+Ritmo Operacional
+  Numero de viagens por hora
+  Tempo médio entre viagens por caminhão
+
+Indicadores KPIs (cards)
+  Produção total do dia (t)
+  Número total de viagens
+  Peso médio por viagem (t)
+  Caminhão mais produtivo
+  Motorista mais produtivo

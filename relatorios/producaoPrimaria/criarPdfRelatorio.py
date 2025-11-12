@@ -13,9 +13,9 @@ from reportlab.platypus import (
     PageBreak, Paragraph, Spacer, Image
 )
 from .criarTabelaGeral import criarTabelaGeral
-from .producaoDiariaPorCaminhao import graficoProducaoDiariaPorCaminhao
+from .producaoDiariaPorCaminhao import graficoLinhaProducaoDiaria
 
-from ERPGerencialOssj.temas.tema_amarelo_dnp import (
+from temas.tema_amarelo_dnp import (
     COR_PRIMARIA, COR_FUNDO,
     COR_TEXTO_PRIMARIO, COR_TEXTO_SECUNDARIO, COR_GRID, COR_FUNDO_SECUNDARIA,
 )
@@ -171,7 +171,7 @@ def build_relatorio(
     story = [
         NextPageTemplate("NORMAL"),
         PageBreak(),
-        Image(graficoProducaoDiariaPorCaminhao(df), width=20 * cm, height=12 * cm),
+        Image(graficoLinhaProducaoDiaria(df), width=20 * cm, height=12 * cm),
         PageBreak(),
     ]
     story.extend(criarTabelaGeral(df, styles, max_linhas=38))
