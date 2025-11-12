@@ -94,7 +94,7 @@ def graficoLinhaProducaoDiaria(dfViagens: pd.DataFrame) -> io.BytesIO:
             xi, yi + (yi * 0.025),
             f"{yi:,.0f}",
             ha="center", va="bottom",
-            fontsize=10, color="#222", weight="bold", zorder=4
+            fontsize=12, color="#222", weight="bold", zorder=4
         )
 
     # títulos e eixos

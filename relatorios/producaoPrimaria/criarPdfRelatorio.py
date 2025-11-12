@@ -12,6 +12,8 @@ from reportlab.platypus import (
     Frame, BaseDocTemplate, PageTemplate, NextPageTemplate,
     PageBreak, Paragraph, Spacer, Image
 )
+
+from .tabelaProducaoDiaria import criarTabelaProducaoDiaria
 from .criarTabelaGeral import criarTabelaGeral
 from .producaoDiariaPorCaminhao import graficoLinhaProducaoDiaria
 
@@ -174,7 +176,7 @@ def build_relatorio(
         Image(graficoLinhaProducaoDiaria(df), width=20 * cm, height=12 * cm),
         PageBreak(),
     ]
-    story.extend(criarTabelaGeral(df, styles, max_linhas=38))
+    story.extend(criarTabelaProducaoDiaria(df, styles, 38))
 
     doc.build(story)
     return f"Relatório gerado em: {Path(output_path).resolve()}"
