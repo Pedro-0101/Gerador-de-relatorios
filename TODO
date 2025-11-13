@@ -1,18 +1,18 @@
-Producao geral
+Producao geral - x
   criar grafico de linha producao diaria simples - x
   tabela com total de viagens e volume por diaria - x
 
-Indicadores KPIs (cards)
-  Produção total do periodo (t)
-  Número total de viagens
-  Caminhão mais produtivo
-  Motorista mais produtivo
-  produção média por dia
-  Dia com mais produção e menos produção não zero
+Indicadores KPIs (cards) - x
+  Produção total do periodo (t) - x
+  Número total de viagens - x
+  Caminhão mais produtivo - x
+  Motorista mais produtivo - x
+  produção média por dia - x
+  Dia com mais produção e menos produção não zero - x 
 
 Caminhoes
   Grafico barra com producao total
-  Tabela com com colunas: Caminhão | Nº de Viagens | Total Descarregado (t) | Peso Médio | Última Viagem
+  Tabela com com colunas   Caminhão | Nº de Viagens | Total Descarregado (t) | Peso Médio | Última Viagem
 
 Motoristas
   Grafico de barra com producao total

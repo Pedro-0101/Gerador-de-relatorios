@@ -16,6 +16,7 @@ from reportlab.platypus import (
 from .tabelaProducaoDiaria import criarTabelaProducaoDiaria
 from .producaoDiariaPorCaminhao import graficoLinhaProducaoDiaria
 from .cardsIndicadores import criar_cards_indicadores
+from .producaoPorCaminhao import graficoProducaoCaminhao
 
 from temas.tema_amarelo_dnp import (
     COR_PRIMARIA, COR_FUNDO,
@@ -177,8 +178,10 @@ def build_relatorio(
         Spacer(1, 0.2*cm),
     ]
     story.extend(criar_cards_indicadores(df, styles))
-    story.append(Spacer(1, 0.4 * cm))
+    story.append(Spacer(1, 0.8 * cm))
     story.extend(criarTabelaProducaoDiaria(df, styles, 38))
+    story.append(PageBreak())
+    story.append(Image(graficoProducaoCaminhao(df), width=20 * cm, height=12 * cm))
 
     doc.build(story)
     return f"Relatório gerado em: {Path(output_path).resolve()}"

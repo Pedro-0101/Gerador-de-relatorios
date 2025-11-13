@@ -6,8 +6,7 @@ from matplotlib.colors import to_rgba
 from matplotlib.patches import Polygon as MplPolygon
 
 def graficoLinhaProducaoDiaria(dfViagens: pd.DataFrame) -> io.BytesIO:
-    print('Gerando gráfico com gradiente Spectral invertido')
-
+    
     coluna_data = "time"
     coluna_valor = "volume_descarregado"
     df = dfViagens.copy()
