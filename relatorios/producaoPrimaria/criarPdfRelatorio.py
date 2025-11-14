@@ -14,9 +14,10 @@ from reportlab.platypus import (
 )
 
 from .tabelaProducaoDiaria import criarTabelaProducaoDiaria
-from .producaoDiariaPorCaminhao import graficoLinhaProducaoDiaria
+from .graficoProducaoDiaria import graficoLinhaProducaoDiaria
 from .cardsIndicadores import criar_cards_indicadores
-from .producaoPorCaminhao import graficoProducaoCaminhao
+from .graficoProducaoPorCaminhao import graficoProducaoCaminhao
+from .tabelaProducaoCaminhao import criarTabelaProducaoPorCaminhao
 
 from temas.tema_amarelo_dnp import (
     COR_PRIMARIA, COR_FUNDO,
@@ -171,17 +172,21 @@ def build_relatorio(
     styles["Heading2"].textColor = COR_PRIMARIA
     styles["Normal"].fontName = FONT_REGULAR
 
-    story = [
-        NextPageTemplate("NORMAL"),
-        PageBreak(),
-        Image(graficoLinhaProducaoDiaria(df), width=20 * cm, height=12 * cm),
-        Spacer(1, 0.2*cm),
-    ]
+    story = []
+    story.append(NextPageTemplate("NORMAL"))
+    story.append(PageBreak())
     story.extend(criar_cards_indicadores(df, styles))
     story.append(Spacer(1, 0.8 * cm))
+    story.append(Image(graficoLinhaProducaoDiaria(df), width=20 * cm, height=12 * cm))
+    story.append(Spacer(1, 0.8 * cm))
     story.extend(criarTabelaProducaoDiaria(df, styles, 38))
-    story.append(PageBreak())
+    story.append(Spacer(1, 0.8 * cm))
+    story.append(Paragraph("Caminhões", styles["Heading2"]))
+    story.append(Spacer(1, 0.4 * cm))
     story.append(Image(graficoProducaoCaminhao(df), width=20 * cm, height=12 * cm))
+    story.append(Spacer(1, 0.4 * cm))
+    story.extend(criarTabelaProducaoPorCaminhao(df, styles, 38))
+    story.append(Spacer(1, 0.4 * cm))
 
     doc.build(story)
     return f"Relatório gerado em: {Path(output_path).resolve()}"

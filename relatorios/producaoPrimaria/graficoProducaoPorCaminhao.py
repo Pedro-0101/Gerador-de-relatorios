@@ -2,6 +2,10 @@ import io
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from temas.tema_amarelo_dnp import (
+  CORES_VIZ
+)
+
 def graficoProducaoCaminhao(dfViagens: pd.DataFrame) -> io.BytesIO:
   coluna_valor = "volume_descarregado"
   coluna_caminhao = "prefixo_veiculo"
@@ -34,12 +38,11 @@ def graficoProducaoCaminhao(dfViagens: pd.DataFrame) -> io.BytesIO:
   )
 
   # plot
-  ax.bar(df_group[coluna_caminhao], df_group[coluna_valor])
+  ax.bar(df_group[coluna_caminhao], df_group[coluna_valor], color=CORES_VIZ)
 
   # labels
-  ax.set_xlabel("Caminhão", fontsize=14)
-  ax.set_ylabel("Total descarregado (t)", fontsize=14)
-  ax.set_title("Produção por Caminhão", fontsize=20, pad=20)
+  ax.set_ylabel("Total descarregado (t)", fontsize=14, fontweight='bold')
+  ax.set_title("Produção por Caminhão", fontsize=20, pad=20, fontweight='bold')
 
   # rotaciona o eixo X para não sobrepor
   plt.xticks(rotation=45, ha="right", fontsize=14)
