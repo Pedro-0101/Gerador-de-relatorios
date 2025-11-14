@@ -18,6 +18,8 @@ from .graficoProducaoDiaria import graficoLinhaProducaoDiaria
 from .cardsIndicadores import criar_cards_indicadores
 from .graficoProducaoPorCaminhao import graficoProducaoCaminhao
 from .tabelaProducaoCaminhao import criarTabelaProducaoPorCaminhao
+from .graficoProducaoPorMotorista import graficoProducaoMotorista
+from .tabelaProducaoMotorista import criarTabelaProducaoPorMotorista
 
 from temas.tema_amarelo_dnp import (
     COR_PRIMARIA, COR_FUNDO,
@@ -186,7 +188,11 @@ def build_relatorio(
     story.append(Image(graficoProducaoCaminhao(df), width=20 * cm, height=12 * cm))
     story.append(Spacer(1, 0.4 * cm))
     story.extend(criarTabelaProducaoPorCaminhao(df, styles, 38))
+    story.append(Spacer(1, 0.8 * cm))
+    story.append(Paragraph("Caminhões", styles["Heading2"]))
+    story.append(Image(graficoProducaoMotorista(df), width=20 * cm, height=12 * cm))
     story.append(Spacer(1, 0.4 * cm))
+    story.extend(criarTabelaProducaoPorMotorista(df, styles, 38))
 
     doc.build(story)
     return f"Relatório gerado em: {Path(output_path).resolve()}"
@@ -195,7 +201,7 @@ def build_relatorio(
 def criarPdf(df, dataInicio, dataFinal, stringNomeObra) -> str:
     out = PROJECT_ROOT / "producaoPrimaria.pdf"
     return build_relatorio(
-        df=df,
+        df=df,  
         dataInicio=dataInicio,
         dataFinal=dataFinal,
         titulo="Relatório de Produção Mensal",
