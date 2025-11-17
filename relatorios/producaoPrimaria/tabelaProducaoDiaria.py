@@ -115,42 +115,48 @@ def criarTabelaProducaoDiaria(dfViagens: pd.DataFrame, styles, max_linhas: int =
 
     # colWidths: Data | Caminhões | Nº Viagens | Total | Peso Médio | Primeira viagem | Ultima viagem
     # repete a primeira linha como cabeçalho usando repeatRows argument
-    tbl = Table(data, colWidths=[3.5 * cm, 3 * cm, 2.5 * cm, 2 * cm, 2 * cm, 3 * cm, 3 * cm], repeatRows=1)
+    tbl = Table(data, colWidths=[2.5 * cm, 4 * cm, 2.5 * cm, 2 * cm, 2 * cm, 3 * cm, 3 * cm], repeatRows=1)
     tbl.setStyle(TableStyle([
+      # Cabeçalho
       ("FONTNAME", (0, 0), (-1, 0), FONT_TABLE_HEADER),
       ("FONTSIZE", (0, 0), (-1, 0), FONTSIZE_HEADER_TABLE),
       ("BACKGROUND", (0, 0), (-1, 0), COR_FUNDO),
       ("TEXTCOLOR", (0, 0), (-1, 0), COR_BACKGROUND_HEADER),
-
-      ("FONTNAME", (0, 1), (-1, -1), FONT_TABLE_BODY),
-      ("FONTSIZE", (0, 1), (-1, -1), FONTSIZE_CONTENT_TABLE),
-
       ("LINEBELOW", (0, 0), (-1, 0), LINE_BELLOW_HEADER, COR_GRID),
-      ("LINEBELOW", (0, 1), (-1, -1), LINE_BELLOW_HEADER_GRID, COR_GRID),
-
       ("ALIGN", (0, 0), (0, -1), "CENTER"),
 
-      # mesmo alinhamento do seu exemplo adaptado
-      ("ALIGN", (2, 0), (2, -1), "RIGHT"),
-      ("ALIGN", (3, 0), (3, -1), "RIGHT"),
-
+      # Tabela completa
+      ("FONTNAME", (0, 1), (-1, -1), FONT_TABLE_BODY),
+      ("FONTSIZE", (0, 1), (-1, -1), FONTSIZE_CONTENT_TABLE),
+      ("LINEBELOW", (0, 1), (-1, -1), LINE_BELLOW_HEADER_GRID, COR_GRID),
       ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-
       ("ROWBACKGROUNDS", (0, 1), (-1, -1), [COR_FUNDO_SECUNDARIA, COR_FUNDO]),
 
+      # Formatar colunas
+      ("ALIGN", (2, 0), (2, -1), "RIGHT"),
+      ("ALIGN", (3, 0), (3, -1), "RIGHT"),
+      ("ALIGN", (4, 0), (4, -1), "RIGHT"),
+      ("ALIGN", (5, 0), (5, -1), "CENTER"),
+      ("ALIGN", (6, 0), (6, -1), "CENTER"),
+
+      # Top e bottom
       ("TOPPADDING", (0, 0), (-1, -1), 2),
       ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
 
       ("GRID", (0, 0), (-1, -1), 0, colors.transparent),
     ]))
+    
+    # período formatado
+    ini = df["time"].min().strftime("%d/%m/%Y")
+    fim = df["time"].max().strftime("%d/%m/%Y")
 
     # Cabeçalho da seção (primeira página vs continuação)
     if i == 0:
-      elementos.append(Paragraph("Produção Diária", styles["Heading2"]))
+      elementos.append(Paragraph(f"Produção Diária: de {ini} a {fim}", styles["Heading2"]))
       elementos.append(Spacer(1, 0.2 * cm))
     else:
       elementos.append(PageBreak())
-      elementos.append(Paragraph("Produção Diária (continuação)", styles["Heading2"]))
+      elementos.append(Paragraph(f"Produção Diária (continuação): de {ini} a {fim}", styles["Heading2"]))
       elementos.append(Spacer(1, 0.2 * cm))
 
     # Indenta a tabela como na outra função

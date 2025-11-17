@@ -1,6 +1,5 @@
 from datetime import timezone, timedelta, datetime
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 from reportlab.lib.pagesizes import A4
@@ -22,35 +21,34 @@ from .graficoProducaoPorMotorista import graficoProducaoMotorista
 from .tabelaProducaoMotorista import criarTabelaProducaoPorMotorista
 
 from temas.tema_amarelo_dnp import (
-    COR_PRIMARIA, COR_FUNDO,
-    COR_TEXTO_PRIMARIO, COR_TEXTO_SECUNDARIO, COR_GRID, COR_FUNDO_SECUNDARIA,
+    COR_PRIMARIA,
+    COR_FUNDO,
+    COR_TEXTO_PRIMARIO,
+    COR_TEXTO_SECUNDARIO,
+    FONT_PADRAO
 )
 
-# --------- paths robustos (fonte/logo) ----------
-HERE = Path(__file__).resolve()
-PKG_ROOT = HERE.parents[2]
-PROJECT_ROOT = PKG_ROOT.parent
-FONT_DIRS = [
-    PROJECT_ROOT / "assets" / "fonts",
-    PKG_ROOT / "assets" / "fonts",
-]
-LOGOS = PROJECT_ROOT / "assets" / "logos"
+# ---------------------------------------------------------------------
+# Constantes globais
+# ---------------------------------------------------------------------
 
+TZ_BR = timezone(timedelta(hours=-3))
 
-def _register_ttf_safe(internal_name: str, candidate_files: list[str]) -> str:
-    for base in FONT_DIRS:
-        for fname in candidate_files:
-            p = base / fname
-            if p.exists():
-                pdfmetrics.registerFont(TTFont(internal_name, str(p)))
-                return internal_name
-    # fallback para fontes embutidas do ReportLab
-    return "Helvetica-Bold" if "bold" in internal_name.lower() else "Helvetica"
+# pasta do arquivo atual: .../relatorios/producaoPrimaria
+_THIS_DIR = Path(__file__).resolve().parent
+# raiz do projeto: sobe 2 níveis -> .../
+PROJECT_ROOT = _THIS_DIR.parents[1]
 
+# ---------------------------------------------------------------------
+# Caminhos logos
+# ---------------------------------------------------------------------
 
-FONT_REGULAR = _register_ttf_safe("DejaVu", ["DejaVuSans.ttf", "DejaVuSans-Regular.ttf"])
-FONT_BOLD = _register_ttf_safe("DejaVu-bold", ["DejaVuSans-Bold.ttf", "DejaVuSans-BoldOblique.ttf"])
+DEFAULT_LOGO_PATH_SJ = PROJECT_ROOT / "assets" / "logos" / "logo_sao_joao_1024x400.jpeg"
+DEFAULT_LOGO_PATH_P = PROJECT_ROOT / "assets" / "logos" / "logo_pinhal_1024x400.jpeg"
 
+# ---------------------------------------------------------------------
+# Helpers de desenho
+# ---------------------------------------------------------------------
 
 def _draw_bar(c, x, y, w, h, color=COR_TEXTO_PRIMARIO):
     c.setFillColor(color)
@@ -58,7 +56,7 @@ def _draw_bar(c, x, y, w, h, color=COR_TEXTO_PRIMARIO):
     c.rect(x, y, w, h, fill=1, stroke=0)
 
 
-def _center_text(c, text, y, font=FONT_BOLD, size=28, color=COR_TEXTO_PRIMARIO):
+def _center_text(c, text, y, font=FONT_PADRAO, size=28, color=COR_TEXTO_PRIMARIO):
     page_w, _ = A4
     c.setFont(font, size)
     c.setFillColor(color)
@@ -67,26 +65,39 @@ def _center_text(c, text, y, font=FONT_BOLD, size=28, color=COR_TEXTO_PRIMARIO):
     c.drawString(x, y, text)
 
 
+# ---------------------------------------------------------------------
+# Callbacks de página
+# ---------------------------------------------------------------------
+
 def onpage_capa(c, doc):
     ctx = getattr(doc, "capa_ctx", {})
+
     dataInicio = ctx.get("dataInicio")
     dataFinal = ctx.get("dataFinal")
     titulo = ctx.get("titulo", "Relatório de produção primária")
     empresa = ctx.get("empresa", "Pedreira São João")
     gerado_por = ctx.get("gerado_por", "Sistema OSSJ")
-    caminho_logo: Optional[Path] = Path(ctx.get("caminho_logo", LOGOS / "logo_sao_joao_1024x400.jpeg"))
+
+    # pode vir string ou Path; se não vier nada, usa DEFAULT_LOGO_PATH
+    caminho_logo_ctx = ctx.get("caminho_logo")
+    if caminho_logo_ctx:
+        caminho_logo = Path(caminho_logo_ctx)
+    else:
+        caminho_logo = DEFAULT_LOGO_PATH_SJ
 
     page_w, page_h = A4
 
+    # fundo
     c.setFillColor(COR_FUNDO)
     c.rect(0, 0, page_w, page_h, fill=1, stroke=0)
 
+    # faixa superior
     _draw_bar(c, 0, page_h - 1.2 * cm, page_w, 1.2 * cm, color=COR_PRIMARIA)
 
     # Logo (se existir)
     logo_w, logo_h = 5 * cm, 2 * cm
     try:
-        if caminho_logo and Path(caminho_logo).exists():
+        if caminho_logo.is_file():
             c.drawImage(
                 str(caminho_logo),
                 page_w - logo_w - 1.5 * cm,
@@ -94,19 +105,30 @@ def onpage_capa(c, doc):
                 width=logo_w, height=logo_h, mask='auto'
             )
     except Exception:
+        # se der erro, não quebrar o relatório
         pass
 
-    periodo = (
-        f"De {dataInicio.strftime('%d/%m/%Y')} à {dataFinal.strftime('%d/%m/%Y')}"
-        if dataInicio and dataFinal else ""
-    )
-    _center_text(c, titulo, y=page_h / 2 + 2.2 * cm, font=FONT_BOLD, size=28, color=COR_TEXTO_PRIMARIO)
-    _center_text(c, periodo, y=page_h / 2 + 0.8 * cm, font=FONT_REGULAR, size=16, color=COR_TEXTO_SECUNDARIO)
+    # Período
+    if dataInicio and dataFinal:
+        periodo = f"De {dataInicio:%d/%m/%Y} a {dataFinal:%d/%m/%Y}"
+    else:
+        periodo = ""
 
-    c.setFont(FONT_REGULAR, 11)
+    _center_text(
+        c, titulo,
+        y=page_h / 2 + 2.2 * cm,
+        font=FONT_PADRAO, size=28, color=COR_TEXTO_PRIMARIO
+    )
+    _center_text(
+        c, periodo,
+        y=page_h / 2 + 0.8 * cm,
+        font=FONT_PADRAO, size=16, color=COR_TEXTO_SECUNDARIO
+    )
+
+    # Bloco com dados da empresa
+    c.setFont(FONT_PADRAO, 11)
     c.setFillColor(COR_TEXTO_SECUNDARIO)
-    fuso = timezone(timedelta(hours=-3))
-    dt_br = datetime.now().astimezone(fuso).strftime('%d/%m/%Y %H:%M')
+    dt_br = datetime.now(TZ_BR).strftime('%d/%m/%Y %H:%M')
     linhas = [
         f"Empresa: {empresa}",
         f"Gerado por: {gerado_por}",
@@ -116,20 +138,32 @@ def onpage_capa(c, doc):
     for i, linha in enumerate(linhas):
         c.drawString(x0, y0 - i * 0.6 * cm, linha)
 
+    # barra inferior
     _draw_bar(c, 0, 2.2 * cm, page_w, 0.15 * cm, color=COR_PRIMARIA)
 
 
 def onpage_normal(c, doc):
     page_w, page_h = A4
-    c.setFont(FONT_REGULAR, 6)
+    c.setFont(FONT_PADRAO, 6)
     c.setFillColor(COR_TEXTO_SECUNDARIO)
 
     M = doc.bottomMargin
-    tz = timezone(timedelta(hours=-3))  # America/Sao_Paulo
-    agora = str(datetime.now(tz).strftime('%d/%m/%Y %H:%M'))
+    agora = datetime.now(TZ_BR).strftime('%d/%m/%Y %H:%M')
 
+    # esquerda: data/hora
     c.drawString(doc.leftMargin, M * 0.5, agora)
-    c.drawCentredString((page_w / 2.0)-2.0, M / 2.0, "Sistema OSSJ")
+
+    # centro: sistema
+    c.drawCentredString(page_w / 2.0, M * 0.5, "Sistema OSSJ")
+
+    # direita: número da página
+    numero_pagina = f"Página {doc.page}"
+    c.drawRightString(page_w - doc.rightMargin, M * 0.5, numero_pagina)
+
+
+# ---------------------------------------------------------------------
+# Montagem do relatório
+# ---------------------------------------------------------------------
 
 def build_relatorio(
         df: pd.DataFrame,
@@ -138,7 +172,7 @@ def build_relatorio(
         titulo: str,
         empresa: str,
         gerado_por: str,
-        caminho_logo: str | Path,
+        caminho_logo: str | Path | None,
         mostrar_marcadagua: bool,
         output_path: str | Path = "producaoPrimaria.pdf",
 ) -> str:
@@ -157,37 +191,50 @@ def build_relatorio(
     pt_norm = PageTemplate(id="NORMAL", frames=[frame_normal], onPage=onpage_normal)
     doc.addPageTemplates([pt_capa, pt_norm])
 
+    # se não vier caminho_logo, usa o default resolvido pelo arquivo
+    caminho_logo_final = Path(caminho_logo) if caminho_logo else DEFAULT_LOGO_PATH_SJ
+
     doc.capa_ctx = {
         "dataInicio": dataInicio,
         "dataFinal": dataFinal,
         "titulo": titulo,
         "empresa": empresa,
         "gerado_por": gerado_por,
-        "caminho_logo": str(caminho_logo),
+        "caminho_logo": str(caminho_logo_final),
         "mostrar_marcadagua": mostrar_marcadagua,
     }
 
     styles = getSampleStyleSheet()
-    styles["Heading1"].fontName = FONT_BOLD
+    styles["Heading1"].fontName = FONT_PADRAO
     styles["Heading1"].textColor = COR_PRIMARIA
-    styles["Heading2"].fontName = FONT_BOLD
+    styles["Heading2"].fontName = FONT_PADRAO
     styles["Heading2"].textColor = COR_PRIMARIA
-    styles["Normal"].fontName = FONT_REGULAR
+    styles["Normal"].fontName = FONT_PADRAO
 
     story = []
     story.append(NextPageTemplate("NORMAL"))
     story.append(PageBreak())
+
+    # cartões / gráfico produção diária
+    story.append(Paragraph("Geral", styles["Heading1"]))
     story.extend(criar_cards_indicadores(df, styles))
     story.append(Spacer(1, 0.8 * cm))
+    story.append(Paragraph("Produção diária", styles["Heading2"]))
     story.append(Image(graficoLinhaProducaoDiaria(df), width=20 * cm, height=12 * cm))
+
+    # tabela produção diária
     story.append(PageBreak())
     story.extend(criarTabelaProducaoDiaria(df, styles, 48))
     story.append(Spacer(1, 0.8 * cm))
+
+    # caminhões
     story.append(PageBreak())
     story.append(Paragraph("Caminhões", styles["Heading2"]))
     story.append(Image(graficoProducaoCaminhao(df), width=20 * cm, height=12 * cm))
     story.append(Spacer(1, 0.4 * cm))
     story.extend(criarTabelaProducaoPorCaminhao(df, styles, 38))
+
+    # motoristas
     story.append(PageBreak())
     story.append(Paragraph("Motoristas", styles["Heading2"]))
     story.append(Image(graficoProducaoMotorista(df), width=20 * cm, height=12 * cm))
@@ -199,15 +246,21 @@ def build_relatorio(
 
 
 def criarPdf(df, dataInicio, dataFinal, stringNomeObra) -> str:
-    out = PROJECT_ROOT / "producaoPrimaria.pdf"
+    out = "producaoPrimaria.pdf"
+    obra = df["desc_obra"][0]
+    if obra == "SÃO JOÃO":
+        caminho_logo = DEFAULT_LOGO_PATH_SJ
+    else:
+        caminho_logo = DEFAULT_LOGO_PATH_P
+        
     return build_relatorio(
-        df=df,  
+        df=df,
         dataInicio=dataInicio,
         dataFinal=dataFinal,
         titulo="Relatório de Produção Mensal",
         empresa=stringNomeObra,
         gerado_por="Sistema OSSJ",
-        caminho_logo=LOGOS / "logo_sao_joao_1024x400.jpeg",
+        caminho_logo=caminho_logo,
         mostrar_marcadagua=True,
         output_path=out,
     )

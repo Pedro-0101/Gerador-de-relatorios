@@ -161,14 +161,18 @@ def criarTabelaProducaoPorMotorista(dfViagens: pd.DataFrame, styles, max_linhas:
       # Remove grid
       ("GRID", (0, 0), (-1, -1), 0, colors.transparent),
     ]))
+    
+    # período formatado
+    ini = df["time"].min().strftime("%d/%m/%Y")
+    fim = df["time"].max().strftime("%d/%m/%Y")
 
     # Cabeçalho
     if i == 0:
-      elementos.append(Paragraph("Produção por motorista", styles["Heading2"]))
+      elementos.append(Paragraph(f"Produção por motorista: de {ini} a {fim}", styles["Heading2"]))
       elementos.append(Spacer(1, 0.2 * cm))
     else:
       elementos.append(PageBreak())
-      elementos.append(Paragraph("Produção por motorista (continuação)", styles["Heading2"]))
+      elementos.append(Paragraph(f"Produção por motorista (continuação): de {ini} a {fim}", styles["Heading2"]))
       elementos.append(Spacer(1, 0.2 * cm))
 
     m = 1.0 * cm

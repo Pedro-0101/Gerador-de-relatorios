@@ -80,6 +80,10 @@ def graficoProducaoMotorista(dfViagens: pd.DataFrame, max_chars: int = 25) -> io
     plt.close(fig)
     buf.seek(0)
     return buf
+  
+  # período formatado
+  ini = df["time"].min().strftime("%d/%m/%Y")
+  fim = df["time"].max().strftime("%d/%m/%Y")
 
   df_group[coluna_motorista] = (
     df_group[coluna_motorista]
@@ -126,7 +130,7 @@ def graficoProducaoMotorista(dfViagens: pd.DataFrame, max_chars: int = 25) -> io
 
   # labels e título
   ax.set_ylabel("Total descarregado (t)", fontsize=14, fontweight="bold")
-  ax.set_title("Produção por Motorista", fontsize=20, pad=20, fontweight="bold")
+  ax.set_title(f"Produção por Motorista: de {ini} a {fim}", fontsize=20, pad=20, fontweight="bold")
 
   # ajusta ticks do x
   rot = 45

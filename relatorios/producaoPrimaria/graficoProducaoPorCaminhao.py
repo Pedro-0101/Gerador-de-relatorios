@@ -29,6 +29,10 @@ def graficoProducaoCaminhao(dfViagens: pd.DataFrame) -> io.BytesIO:
   # garante tipos corretos
   df[coluna_valor] = pd.to_numeric(df[coluna_valor], errors="coerce").fillna(0)
 
+  # período formatado
+  ini = df["time"].min().strftime("%d/%m/%Y")
+  fim = df["time"].max().strftime("%d/%m/%Y")
+
   # agrega
   df_group = (
     df.groupby(coluna_caminhao)[coluna_valor]
@@ -42,7 +46,7 @@ def graficoProducaoCaminhao(dfViagens: pd.DataFrame) -> io.BytesIO:
 
   # labels
   ax.set_ylabel("Total descarregado (t)", fontsize=14, fontweight='bold')
-  ax.set_title("Produção por Caminhão", fontsize=20, pad=20, fontweight='bold')
+  ax.set_title(f"Produção por Caminhão: de {ini} a {fim}", fontsize=20, pad=20, fontweight='bold')
 
   # rotaciona o eixo X para não sobrepor
   plt.xticks(rotation=45, ha="right", fontsize=14)

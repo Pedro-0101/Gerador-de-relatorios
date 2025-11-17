@@ -64,7 +64,7 @@ def criarTabelaProducaoPorCaminhao(dfViagens: pd.DataFrame, styles, max_linhas: 
       v = float(v)
     except Exception:
       v = 0.0
-    s = f"{v:,.2f}"  # ex: 1,234.56
+    s = f"{v:,.2f}"
     s = s.replace(",", "X").replace(".", ",").replace("X", ".")
     return s
 
@@ -80,12 +80,11 @@ def criarTabelaProducaoPorCaminhao(dfViagens: pd.DataFrame, styles, max_linhas: 
     ])
 
   # quebra em páginas (chunks) mantendo mesmo estilo visual
-
   for i in range(0, len(linhas), max_linhas):
     chunk = linhas[i:i + max_linhas]
     data = [cabeçalho] + chunk
 
-    tbl = Table(data, colWidths=[3 * cm, 2.5 * cm, 3 * cm, 4 * cm], repeatRows=1)
+    tbl = Table(data, colWidths=[6 * cm, 4 * cm, 4.5 * cm, 4.5 * cm], repeatRows=1)
 
     tbl.setStyle(TableStyle([
       ("FONTNAME", (0, 0), (-1, 0), FONT_TABLE_HEADER),
@@ -98,7 +97,8 @@ def criarTabelaProducaoPorCaminhao(dfViagens: pd.DataFrame, styles, max_linhas: 
       ("LINEBELOW", (0, 0), (-1, 0), LINE_BELLOW_HEADER, COR_GRID),
       ("LINEBELOW", (0, 1), (-1, -1), LINE_BELLOW_HEADER_GRID, COR_GRID),
 
-      ("ALIGN", (0, 0), (0, -1), "CENTER"),
+      ("ALIGN", (0, 0), (0, -1), "LEFT"),
+      ("ALIGN", (1, 0), (1, -1), "RIGHT"),
       ("ALIGN", (2, 0), (2, -1), "RIGHT"),
       ("ALIGN", (3, 0), (3, -1), "RIGHT"),
       ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
@@ -108,14 +108,18 @@ def criarTabelaProducaoPorCaminhao(dfViagens: pd.DataFrame, styles, max_linhas: 
       ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
       ("GRID", (0, 0), (-1, -1), 0, colors.transparent),
     ]))
+    
+    # período formatado
+    ini = df["time"].min().strftime("%d/%m/%Y")
+    fim = df["time"].max().strftime("%d/%m/%Y")
 
     # Cabeçalho da seção (primeira página vs continuação)
     if i == 0:
-      elementos.append(Paragraph("Produção por caminhão", styles["Heading2"]))
+      elementos.append(Paragraph(f"Produção por caminhão: de {ini} a {fim}", styles["Heading2"]))
       elementos.append(Spacer(1, 0.2 * cm))
     else:
       elementos.append(PageBreak())
-      elementos.append(Paragraph("Produção por caminhão (continuação)", styles["Heading2"]))
+      elementos.append(Paragraph(f"Produção por caminhão (continuação): de {ini} a {fim}", styles["Heading2"]))
       elementos.append(Spacer(1, 0.2 * cm))
 
     # Indenta a tabela como na outra função

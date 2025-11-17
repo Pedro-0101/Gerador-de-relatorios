@@ -1,6 +1,7 @@
 from reportlab.lib import colors
 
 # ================= Paleta de cores =================
+FONT_PADRAO = "Helvetica"                           # Fonte primaria
 COR_PRIMARIA = colors.HexColor("#003262")         # Barra/títulos principais
 COR_TEXTO_TITULO = colors.HexColor("#0A6EBD")     # Cor dos subtítulos
 COR_FUNDO = colors.HexColor("#FFFFFF")            # Fundo branco
