@@ -2,6 +2,7 @@ import pandas as pd
 from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle, Paragraph, Spacer, PageBreak, Indenter
+from utils.primeiraLetraMaiuscula import titlecase_pt
 
 from temas.tema_amarelo_dnp import (
   COR_FUNDO, COR_GRID, 
@@ -14,37 +15,6 @@ from temas.tema_amarelo_dnp import (
   FONT_TABLE_BODY,
   COR_BACKGROUND_HEADER,
 )
-
-# helper: coloca iniciais em maiúsculo com regras pt-BR simples (ajuste sutil)
-def titlecase_pt(s: str) -> str:
-  s = ("" if s is None else str(s)).strip().lower()
-  if not s:
-    return ""
-  minusculas = {"da", "de", "do", "das", "dos", "e", "di", "du", "del", "van", "von", "d"}
-  tokens = s.split()
-
-  def cap_word(w: str) -> str:
-    # trata hifens: "maria-joao" -> "Maria-Joao"
-    parts = []
-    for p in w.split("-"):
-      if p == "":
-        parts.append(p)
-      else:
-        # trata "d'ávila" -> "d'Ávila"
-        if len(p) > 2 and p[:2] == "d'":
-          parts.append("d'" + p[2:3].upper() + p[3:])
-        else:
-          parts.append(p[:1].upper() + p[1:])
-    return "-".join(parts)
-
-  out = []
-  for i, w in enumerate(tokens):
-    if i > 0 and w in minusculas:
-      out.append(w)
-    else:
-      out.append(cap_word(w))
-  return " ".join(out)
-
 
 def criarTabelaProducaoDiaria(dfViagens: pd.DataFrame, styles, max_linhas: int = 34):
   """
@@ -120,7 +90,7 @@ def criarTabelaProducaoDiaria(dfViagens: pd.DataFrame, styles, max_linhas: int =
     except Exception:
       v = 0.0
     # Formata com separador pt-BR: "1.234,56"
-    s = f"{v:,.2f}"  # ex: 1,234.56
+    s = f"{v:,.2f}" 
     s = s.replace(",", "X").replace(".", ",").replace("X", ".")
     return s
 
