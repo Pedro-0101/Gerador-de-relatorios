@@ -81,8 +81,15 @@ def graficoProducaoMotorista(dfViagens: pd.DataFrame, max_chars: int = 25) -> io
     buf.seek(0)
     return buf
 
-  # prepara nomes e valores
-  nomes = df_group[coluna_motorista].astype(str).tolist()
+  df_group[coluna_motorista] = (
+    df_group[coluna_motorista]
+    .fillna("Não definido")
+    .replace("", "Não definido")
+    .astype(str)
+    .apply(titlecase_pt)
+  ) 
+
+  nomes = df_group[coluna_motorista].tolist()
   valores = df_group[coluna_valor].astype(float).tolist()
 
   # evita nomes com comprimento exagerado — quebra em duas linhas ou trunca

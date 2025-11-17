@@ -4,9 +4,16 @@ from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle, Paragraph, Spacer, PageBreak, Indenter
 
 from temas.tema_amarelo_dnp import (
-  COR_FUNDO, COR_GRID, COR_FUNDO_SECUNDARIA
+  COR_FUNDO, COR_GRID, 
+  COR_FUNDO_SECUNDARIA, 
+  FONTSIZE_HEADER_TABLE, 
+  FONTSIZE_CONTENT_TABLE, 
+  LINE_BELLOW_HEADER, 
+  LINE_BELLOW_HEADER_GRID,
+  FONT_TABLE_HEADER,
+  FONT_TABLE_BODY,
+  COR_BACKGROUND_HEADER,
 )
-FONT = "Helvetica"
 
 # helper: coloca iniciais em maiúsculo com regras pt-BR simples (ajuste sutil)
 def titlecase_pt(s: str) -> str:
@@ -102,9 +109,6 @@ def criarTabelaProducaoPorCaminhao(dfViagens: pd.DataFrame, styles, max_linhas: 
     ])
 
   # quebra em páginas (chunks) mantendo mesmo estilo visual
-  FONT_HDR = FONT
-  FONT_BODY = FONT
-  HDR_COLOR = colors.HexColor("#666666")
 
   for i in range(0, len(linhas), max_linhas):
     chunk = linhas[i:i + max_linhas]
@@ -113,19 +117,19 @@ def criarTabelaProducaoPorCaminhao(dfViagens: pd.DataFrame, styles, max_linhas: 
     tbl = Table(data, colWidths=[3 * cm, 2.5 * cm, 3 * cm, 4 * cm], repeatRows=1)
 
     tbl.setStyle(TableStyle([
-      ("FONTNAME", (0, 0), (-1, 0), FONT_HDR),
-      ("FONTSIZE", (0, 0), (-1, 0), 8),
+      ("FONTNAME", (0, 0), (-1, 0), FONT_TABLE_HEADER),
+      ("FONTSIZE", (0, 0), (-1, 0), FONTSIZE_HEADER_TABLE),
       ("BACKGROUND", (0, 0), (-1, 0), COR_FUNDO),
-      ("TEXTCOLOR", (0, 0), (-1, 0), HDR_COLOR),
+      ("TEXTCOLOR", (0, 0), (-1, 0), COR_BACKGROUND_HEADER),
 
-      ("FONTNAME", (0, 1), (-1, -1), FONT_BODY),
-      ("FONTSIZE", (0, 1), (-1, -1), 7),
-      ("LINEBELOW", (0, 0), (-1, 0), 0.6, COR_GRID),
-      ("LINEBELOW", (0, 1), (-1, -1), 0.25, COR_GRID),
+      ("FONTNAME", (0, 1), (-1, -1), FONT_TABLE_BODY),
+      ("FONTSIZE", (0, 1), (-1, -1), FONTSIZE_CONTENT_TABLE),
+      ("LINEBELOW", (0, 0), (-1, 0), LINE_BELLOW_HEADER, COR_GRID),
+      ("LINEBELOW", (0, 1), (-1, -1), LINE_BELLOW_HEADER_GRID, COR_GRID),
 
       ("ALIGN", (0, 0), (0, -1), "CENTER"),
       ("ALIGN", (2, 0), (2, -1), "RIGHT"),
-      ("ALIGN", (3, 0), (3, -1), "RIGHT"),  # corrigido aqui
+      ("ALIGN", (3, 0), (3, -1), "RIGHT"),
       ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
 
       ("ROWBACKGROUNDS", (0, 1), (-1, -1), [COR_FUNDO_SECUNDARIA, COR_FUNDO]),
