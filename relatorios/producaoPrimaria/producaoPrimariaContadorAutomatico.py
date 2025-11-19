@@ -25,6 +25,7 @@ def main():
     parser.add_argument("--fim", help='Data final (ex: "2025-08-28 23:59:59")')
     parser.add_argument("--obra", type=int, help="Código da obra (ex: 41)")
     parser.add_argument("--ajuda", action="store_true", help="Mostrar exemplos de uso")
+    parser.add_argument("--out", help='Caminho para o arquivo de saída (ex: "relatorio.pdf")')
     args = parser.parse_args()
 
     if args.ajuda:
@@ -32,9 +33,9 @@ def main():
         print('--ini: Data inicial (ex: "2025-09-01 00:00:00")')
         print('--fim: Data final (ex: "2025-09-30 23:59:59")')
         print("--obra: Código da obra (ex: 41)")
+        print("--out: Caminho para o arquivo de saída (ex: \"relatorio.pdf\")")
         print(
-            'Exemplo: python -m ERPGerencialOssj.relatorios.producaoPrimaria.producaoPrimariaContadorAutomatico'
-            '--ini "2025-09-01 00:00:00" --fim "2025-09-30 23:59:59" --obra 41'
+            'Exemplo: python -m relatorios.producaoPrimaria.producaoPrimariaContadorAutomatico --ini "2025-09-01 00:00:00" --fim "2025-09-30 23:59:59" --obra 41 --out "./relatorio_producao.pdf"'
         )
         return
 
@@ -86,8 +87,7 @@ def main():
 
     print(f"Relatório: {nome_obra} | Período: {data_inicio.strftime(FMT)} a {data_final.strftime(FMT)}")
 
-    # ✅ usar as variáveis corretas
-    criarPdf(df, data_inicio, data_final, nome_obra)
+    criarPdf(df, data_inicio, data_final, nome_obra, args.out)
 
 
 if __name__ == "__main__":

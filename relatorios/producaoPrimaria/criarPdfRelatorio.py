@@ -245,8 +245,8 @@ def build_relatorio(
     return f"Relatório gerado em: {Path(output_path).resolve()}"
 
 
-def criarPdf(df, dataInicio, dataFinal, stringNomeObra) -> str:
-    out = "producaoPrimaria.pdf"
+def criarPdf(df, dataInicio, dataFinal, stringNomeObra, output_path=None) -> str:
+    out = output_path if output_path else "producaoPrimaria.pdf"
     obra = df["desc_obra"][0]
     if obra == "SÃO JOÃO":
         caminho_logo = DEFAULT_LOGO_PATH_SJ
