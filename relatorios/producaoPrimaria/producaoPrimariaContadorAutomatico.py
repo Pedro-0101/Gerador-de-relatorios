@@ -1,8 +1,16 @@
 import argparse
+import sys
+from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional
-from db import load_dataframe
 
+# Adiciona o diretório raiz do projeto ao sys.path
+# Isso garante que o módulo 'db' seja encontrado independentemente de onde o script é executado
+project_root = Path(__file__).resolve().parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from db import load_dataframe
 from .criarPdfRelatorio import criarPdf
 
 FMT = "%Y-%m-%d %H:%M:%S"
